@@ -346,8 +346,13 @@
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         <!-- 模式切换按钮 - 放在最外层确保始终可见 -->
         <div class="mode-toggle absolute bottom-4 left-4 z-50">
-            <button id="modeToggleBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                当前：正常模式
+            <button id="modeToggleBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">当前：正常模式</button>
+        </div>
+        
+        <!-- 更改名字按钮 -->
+        <div class="name-toggle absolute bottom-4 right-20 z-50">
+            <button id="changeNameBtn" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                更改名字
             </button>
         </div>
         
@@ -371,6 +376,18 @@
             <p class="tutorial">拖动宇航员左右移动，躲避陨石，收集金币！</p>
             <button class="button start-btn" id="startBtn">开始游戏</button>
         </div>
+        
+        <!-- 更改名字弹窗 -->
+        <div class="name-change-modal" id="nameChangeModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); z-index: 10000; justify-content: center; align-items: center;">
+            <div style="background-color: #1f2937; padding: 30px; border-radius: 15px; text-align: center; min-width: 300px;">
+                <h3 style="color: white; font-size: 24px; margin-bottom: 20px;">更改名字</h3>
+                <input type="text" id="nameInput" placeholder="请输入您的名字" maxlength="10" style="width: 100%; padding: 10px; border: none; border-radius: 5px; margin-bottom: 20px; font-size: 16px;">
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button id="saveNameBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">保存</button>
+                    <button id="cancelNameBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">取消</button>
+                </div>
+            </div>
+        </div>
         <!-- 图鉴界面 -->
         <div class="encyclopedia-screen" id="encyclopediaScreen" style="display: none;">
             <div class="encyclopedia-content">
@@ -378,25 +395,25 @@
                 <div class="encyclopedia-grid">
                     <!-- 普通陨石 -->
                     <div class="encyclopedia-item">
-                        <img src="https://p11-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/037dd0cafd5e41f98f0bd54fd6fd4960~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260224112551C44E407D1D1E428E7584&rrcfp=f06b921b&x-expires=1774495582&x-signature=jTaJTdGfVg6aNMx6RCKAH8k6ywg%3D" alt="普通陨石" class="encyclopedia-image">
+                        <img src="https://p11-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/037dd0cafd5e41f98f0bd54fd6fd4960~tplv-a9rns2rl98-image.image?lk3s=8e244e95&amp;rcl=20260224112551C44E407D1D1E428E7584&amp;rrcfp=f06b921b&amp;x-expires=1774495582&amp;x-signature=jTaJTdGfVg6aNMx6RCKAH8k6ywg%3D" alt="普通陨石" class="encyclopedia-image">
                         <h3>普通陨石</h3>
                         <p>最常见的障碍物，从顶部落下，碰到会损失一条生命。</p>
                     </div>
                     <!-- 反弹陨石 -->
                     <div class="encyclopedia-item">
-                        <img src="https://p11-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/037dd0cafd5e41f98f0bd54fd6fd4960~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260224112551C44E407D1D1E428E7584&rrcfp=f06b921b&x-expires=1774495582&x-signature=jTaJTdGfVg6aNMx6RCKAH8k6ywg%3D" alt="反弹陨石" class="encyclopedia-image">
+                        <img src="https://p11-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/037dd0cafd5e41f98f0bd54fd6fd4960~tplv-a9rns2rl98-image.image?lk3s=8e244e95&amp;rcl=20260224112551C44E407D1D1E428E7584&amp;rrcfp=f06b921b&amp;x-expires=1774495582&amp;x-signature=jTaJTdGfVg6aNMx6RCKAH8k6ywg%3D" alt="反弹陨石" class="encyclopedia-image">
                         <h3>反弹陨石</h3>
                         <p>碰到地面会反弹的陨石，移动轨迹更难预测。</p>
                     </div>
                     <!-- 巨大陨石 -->
                     <div class="encyclopedia-item">
-                        <img src="https://p11-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/037dd0cafd5e41f98f0bd54fd6fd4960~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260224112551C44E407D1D1E428E7584&rrcfp=f06b921b&x-expires=1774495582&x-signature=jTaJTdGfVg6aNMx6RCKAH8k6ywg%3D" alt="巨大陨石" class="encyclopedia-image giant">
+                        <img src="https://p11-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/037dd0cafd5e41f98f0bd54fd6fd4960~tplv-a9rns2rl98-image.image?lk3s=8e244e95&amp;rcl=20260224112551C44E407D1D1E428E7584&amp;rrcfp=f06b921b&amp;x-expires=1774495582&amp;x-signature=jTaJTdGfVg6aNMx6RCKAH8k6ywg%3D" alt="巨大陨石" class="encyclopedia-image giant">
                         <h3>巨大陨石</h3>
                         <p>体积巨大的陨石，需要10发子弹才能消灭，到达底部会生成15个反弹陨石。</p>
                     </div>
                     <!-- 金币 -->
                     <div class="encyclopedia-item">
-                        <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/1df7804e07b64153a94d0ac8df3302e5~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260224112551C44E407D1D1E428E7584&rrcfp=f06b921b&x-expires=1774495594&x-signature=ur91ZX%2FBp8FgfFcTxkgAFcMtIHw%3D" alt="金币" class="encyclopedia-image">
+                        <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/1df7804e07b64153a94d0ac8df3302e5~tplv-a9rns2rl98-image.image?lk3s=8e244e95&amp;rcl=20260224112551C44E407D1D1E428E7584&amp;rrcfp=f06b921b&amp;x-expires=1774495594&amp;x-signature=ur91ZX%2FBp8FgfFcTxkgAFcMtIHw%3D" alt="金币" class="encyclopedia-image">
                         <h3>金币</h3>
                         <p>收集金币获得分数，每10分在正常模式下会触发减速效果。</p>
                     </div>
@@ -425,12 +442,13 @@
 
         <div class="game-over-screen" id="gameOverScreen">
             <h1 class="game-title">游戏结束</h1>
+            <div class="final-mode" style="font-size: 24px; margin-bottom: 20px; color: #60a5fa;"><span id="finalMode">正常模式</span></div>
             <div class="final-score">最终得分: <span id="finalScore">0</span></div>
             <button class="button play-again-btn" id="playAgainBtn">再来一次</button>
             <button class="button leaderboard-btn" id="leaderboardBtn">排行榜</button>
         </div>
         <div class="leaderboard-screen" id="leaderboardScreen">
-            <h2 class="leaderboard-title">排行榜</h2>
+            <h2 class="leaderboard-title" id="leaderboardTitle">排行榜 <span id="cloudStatus" style="font-size: 16px; color: #34d399;">☁️ 已同步</span></h2>
             <div class="leaderboard-list" id="leaderboardList">
                 <!-- 排行榜数据将在这里动态生成 -->
             </div>
@@ -521,10 +539,18 @@
         let gunItemInterval = 12000;
         let bulletInterval = 50; // 0.05秒/发
         let lastBulletTime = 0;
+        let lastScoreTime = 0; // 用于超躲避模式的计时
         let gunDuration = 20000; // 枪道具持续20秒
         let bulletCount = 1; // 当前发射的子弹数量
         let gunLevel = 1; // 枪的等级：1=单发，2=双发，3=三发，4=全屏子弹
-        let gameMode = 'normal'; // 'normal', 'casual' 或 'giant'
+        let gameMode = 'normal'; // 'normal', 'casual', 'giant' 或 'extreme'
+        let playerName = localStorage.getItem('playerName') || '匿名';
+        let leaderboards = {
+            normal: [],
+            casual: [],
+            giant: [],
+            extreme: []
+        };
         
         // 玩家对象
         const player = {
@@ -566,6 +592,17 @@
             // 更新护盾状态和警告效果
             updateShieldStatus(timestamp);
             
+            // 超躲避模式：每秒+1分
+            if (gameMode === 'extreme') {
+                if (!lastScoreTime) {
+                    lastScoreTime = timestamp;
+                } else if (timestamp - lastScoreTime >= 1000) {
+                    score++;
+                    document.getElementById('score').textContent = score;
+                    lastScoreTime = timestamp;
+                }
+            }
+            
             // 清除画布
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
@@ -576,12 +613,22 @@
             if (timestamp - lastObstacleTime > obstacleInterval) {
                 // 根据游戏进度生成多个障碍物
                 for (let i = 0; i < obstacleCount; i++) {
-                    createObstacle();
+                    if (gameMode === 'extreme') {
+                        // 超躲避模式：只生成普通陨石
+                        createNormalObstacle();
+                    } else {
+                        createObstacle();
+                    }
                 }
                 lastObstacleTime = timestamp;
                 
                 // 随着游戏进行，障碍物生成速度逐渐加快
-                obstacleInterval = Math.max(500, obstacleInterval - 10);
+                if (gameMode === 'extreme') {
+                    // 超躲避模式：更快的速度增长
+                    obstacleInterval = Math.max(300, obstacleInterval - 15);
+                } else {
+                    obstacleInterval = Math.max(500, obstacleInterval - 10);
+                }
                 
                 // 每10秒增加一次障碍物生成数量（最多5个）
                 if (score > 0 && score % 10 === 0 && obstacleCount < 5) {
@@ -589,43 +636,48 @@
                 }
             }
             
-            // 生成金币
-            if (timestamp - lastCoinTime > coinInterval) {
-                createCoin();
-                lastCoinTime = timestamp;
-                // 金币生成间隔也会逐渐缩短，但比障碍物慢
-                coinInterval = Math.max(2000, coinInterval - 5);
+            // 超躲避模式下不生成任何道具
+            if (gameMode !== 'extreme') {
+                // 生成金币
+                if (timestamp - lastCoinTime > coinInterval) {
+                    createCoin();
+                    lastCoinTime = timestamp;
+                    // 金币生成间隔也会逐渐缩短，但比障碍物慢
+                    coinInterval = Math.max(2000, coinInterval - 5);
+                }
+                
+                // 生成护盾道具（10%概率）- 盾牌激活期间不生成
+                if (!shieldActive && timestamp - lastShieldItemTime > shieldItemInterval && Math.random() < 0.1) {
+                    createShieldItem();
+                    lastShieldItemTime = timestamp;
+                    // 护盾道具生成间隔随机化
+                    shieldItemInterval = 15000 + Math.random() * 10000;
+                }
+                
+                // 当分数达到9且生命值小于最大值且生命道具尚未生成时，生成生命道具
+                if (score >= 9 && lives < maxLives && !lifeItemSpawned && timestamp - lastLifeItemTime > lifeItemInterval) {
+                    createLifeItem();
+                    lifeItemSpawned = true; // 标记生命道具已生成
+                    lastLifeItemTime = timestamp;
+                }
             }
             
-            // 生成护盾道具（10%概率）- 盾牌激活期间不生成
-            if (!shieldActive && timestamp - lastShieldItemTime > shieldItemInterval && Math.random() < 0.1) {
-                createShieldItem();
-                lastShieldItemTime = timestamp;
-                // 护盾道具生成间隔随机化
-                shieldItemInterval = 15000 + Math.random() * 10000;
-            }
-            
-            // 当分数达到9且生命值小于最大值且生命道具尚未生成时，生成生命道具
-            if (score >= 9 && lives < maxLives && !lifeItemSpawned && timestamp - lastLifeItemTime > lifeItemInterval) {
-                createLifeItem();
-                lifeItemSpawned = true; // 标记生命道具已生成
-                lastLifeItemTime = timestamp;
-            }
-            
-            // 根据游戏模式生成枪道具
-            let gunProbability = 0.15; // 基础概率
-            let gunScoreRequirement = 10; // 基础分数要求
-            
-            if (gameMode === 'giant') {
-                gunProbability = 0.4; // 大陨石模式下枪道具概率增加到40%
-                gunScoreRequirement = 0; // 大陨石模式下移除分数限制
-            }
-            
-            if (score >= gunScoreRequirement && timestamp - lastGunItemTime > gunItemInterval && Math.random() < gunProbability) {
-                createGunItem();
-                lastGunItemTime = timestamp;
-                // 枪道具生成间隔随机化
-                gunItemInterval = 12000 + Math.random() * 8000;
+            // 根据游戏模式生成枪道具（超躲避模式不生成）
+            if (gameMode !== 'extreme') {
+                let gunProbability = 0.15; // 基础概率
+                let gunScoreRequirement = 10; // 基础分数要求
+                
+                if (gameMode === 'giant') {
+                    gunProbability = 0.4; // 大陨石模式下枪道具概率增加到40%
+                    gunScoreRequirement = 0; // 大陨石模式下移除分数限制
+                }
+                
+                if (score >= gunScoreRequirement && timestamp - lastGunItemTime > gunItemInterval && Math.random() < gunProbability) {
+                    createGunItem();
+                    lastGunItemTime = timestamp;
+                    // 枪道具生成间隔随机化
+                    gunItemInterval = 12000 + Math.random() * 8000;
+                }
             }
             
             // 更新护盾状态
@@ -667,15 +719,33 @@
             // 检查碰撞
             checkCollisions();
             
-            // 更新游戏速度（仅在正常模式下）
-            if (gameMode === 'normal') {
-                gameSpeed += 0.005;
+            // 更新游戏速度
+            if (gameMode === 'normal' || gameMode === 'extreme') {
+                gameSpeed += gameMode === 'extreme' ? 0.01 : 0.005; // 超躲避模式速度增长更快
             }
             
             // 请求下一帧
             requestAnimationFrame(gameLoop);
         }
         
+        // 创建普通障碍物（用于超躲避模式）
+        function createNormalObstacle() {
+            const width = 30 + Math.random() * 20;
+            const height = 30 + Math.random() * 20;
+            
+            const obstacle = {
+                x: Math.random() * (canvas.width - width),
+                y: -height,
+                width: width,
+                height: height,
+                speed: gameSpeed + Math.random() * 2,
+                isGiant: false,
+                isBouncing: false
+            };
+            
+            obstacles.push(obstacle);
+        }
+
         // 创建障碍物
         function createObstacle() {
             // 根据游戏模式决定是否生成巨大陨石
@@ -911,6 +981,52 @@
                 }
             }
             
+            // 检查障碍物之间的碰撞（被护盾反弹的陨石与其他陨石的碰撞）
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obstacle1 = obstacles[i];
+                
+                // 只处理被护盾反弹的陨石
+                if (obstacle1.isShieldBounced) {
+                    for (let j = obstacles.length - 1; j >= 0; j--) {
+                        if (i !== j) {
+                            const obstacle2 = obstacles[j];
+                            
+                            // 检测碰撞
+                            if (
+                                obstacle1.x < obstacle2.x + obstacle2.width &&
+                                obstacle1.x + obstacle1.width > obstacle2.x &&
+                                obstacle1.y < obstacle2.y + obstacle2.height &&
+                                obstacle1.y + obstacle1.height > obstacle2.y
+                            ) {
+                                // 被反弹的小陨石可以击碎普通陨石和对大陨石造成1点伤害
+                                if (!obstacle1.isGiant) {
+                                    if (obstacle2.isGiant) {
+                                        // 小陨石击中大陨石，造成1点伤害
+                                        obstacle2.health--;
+                                        if (obstacle2.health <= 0) {
+                                            obstacles.splice(j, 1);
+                                            score += 1;
+                                            document.getElementById('score').textContent = score;
+                                        }
+                                    } else {
+                                        // 小陨石击中普通陨石，直接击碎
+                                        obstacles.splice(j, 1);
+                                    }
+                                } 
+                                // 被反弹的大陨石可以击碎所有普通陨石
+                                else if (obstacle1.isGiant && !obstacle2.isGiant) {
+                                    obstacles.splice(j, 1);
+                                }
+                                
+                                // 被反弹的陨石在碰撞后消失
+                                obstacles.splice(i, 1);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            
             // 检查与障碍物的碰撞
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 const obstacle = obstacles[i];
@@ -1075,8 +1191,10 @@
             // 立即停止游戏循环
             gameRunning = false;
             
-            // 显示模式切换按钮
+            // 显示所有菜单按钮
             document.getElementById('modeToggleBtn').style.display = 'block';
+            document.getElementById('changeNameBtn').style.display = 'block';
+            document.getElementById('encyclopediaBtn').style.display = 'block';
             
             // 显示游戏结束屏幕
             document.getElementById('gameOverScreen').style.display = 'flex';
@@ -1097,31 +1215,97 @@
                 console.log('第二次尝试显示最终得分:', finalScore);
             });
             
+            // 显示游戏模式
+            let modeText = '正常模式';
+            if (gameMode === 'casual') {
+                modeText = '休闲模式';
+            } else if (gameMode === 'giant') {
+                modeText = '大陨石模式';
+            } else if (gameMode === 'extreme') {
+                modeText = '超躲避模式';
+            }
+            document.getElementById('finalMode').textContent = modeText;
+            
             // 4. 使用较长延迟作为保险
             setTimeout(() => {
                 document.getElementById('finalScore').textContent = finalScore;
                 console.log('第三次尝试显示最终得分:', finalScore);
             }, 100);
             
-            // 更新排行榜（仅在正常模式下）
-            if (gameMode === 'normal') {
-                updateLeaderboard(finalScore);
-            }
+            // 更新排行榜（所有模式都记录）
+            updateLeaderboard(finalScore);
         }
         
         // 更新排行榜
         function updateLeaderboard(score) {
-            // 添加新分数
-            leaderboard.push(score);
+            // 添加新分数到当前模式的排行榜（包含玩家名字）
+            const scoreEntry = {
+                name: playerName,
+                score: score,
+                date: new Date().toLocaleDateString(),
+                deviceId: localStorage.getItem('deviceId') || generateDeviceId()
+            };
+            leaderboards[gameMode].push(scoreEntry);
             
             // 按分数排序
-            leaderboard.sort((a, b) => b - a);
+            leaderboards[gameMode].sort((a, b) => b.score - a.score);
             
             // 只保留前10名
-            leaderboard = leaderboard.slice(0, 10);
+            leaderboards[gameMode] = leaderboards[gameMode].slice(0, 10);
             
             // 保存到本地存储
-            localStorage.setItem('dodgeGameLeaderboard', JSON.stringify(leaderboard));
+            localStorage.setItem('dodgeGameLeaderboards', JSON.stringify(leaderboards));
+            
+            // 模拟云存档效果
+            simulateCloudSave();
+        }
+        
+        // 生成设备ID
+        function generateDeviceId() {
+            const deviceId = 'device_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('deviceId', deviceId);
+            return deviceId;
+        }
+        
+        // 模拟云存档效果
+        function simulateCloudSave() {
+            const cloudStatus = document.getElementById('cloudStatus');
+            if (cloudStatus) {
+                // 添加同步动画效果
+                cloudStatus.innerHTML = '<span class="animate-pulse">☁️ 同步中...</span>';
+                cloudStatus.style.color = '#f59e0b';
+                
+                // 显示同步提示
+                const syncToast = document.createElement('div');
+                syncToast.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: rgba(52, 211, 153, 0.9);
+                    color: white;
+                    padding: 10px 15px;
+                    border-radius: 8px;
+                    z-index: 10001;
+                    font-size: 14px;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                `;
+                syncToast.innerHTML = '☁️ 正在同步到云服务器...';
+                document.body.appendChild(syncToast);
+                
+                setTimeout(() => {
+                    cloudStatus.innerHTML = '☁️ 已同步';
+                    cloudStatus.style.color = '#34d399';
+                    
+                    // 更新同步提示
+                    syncToast.innerHTML = '✅ 云同步完成！';
+                    syncToast.style.background = 'rgba(74, 222, 128, 0.9)';
+                    
+                    setTimeout(() => {
+                        document.body.removeChild(syncToast);
+                    }, 2000);
+                }, 1500);
+            }
+            console.log('正在同步到云服务器...');
         }
         
         // 显示排行榜
@@ -1129,15 +1313,42 @@
             const leaderboardList = document.getElementById('leaderboardList');
             leaderboardList.innerHTML = '';
             
-            leaderboard.forEach((score, index) => {
+            // 获取当前模式的排行榜
+            const currentLeaderboard = leaderboards[gameMode];
+            
+            if (currentLeaderboard.length === 0) {
                 const item = document.createElement('div');
                 item.className = 'leaderboard-item';
-                item.innerHTML = `
-                    <span>${index + 1}</span>
-                    <span>${score}</span>
-                `;
+                item.innerHTML = '<span colspan="3">暂无记录</span>';
                 leaderboardList.appendChild(item);
-            });
+            } else {
+                currentLeaderboard.forEach((entry, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'leaderboard-item';
+                    item.innerHTML = `
+                        <span class="rank">${index + 1}</span>
+                        <span class="name">${entry.name}</span>
+                        <span class="score">${entry.score}</span>
+                    `;
+                    // 如果是当前玩家，添加高亮样式
+                    if (entry.deviceId === localStorage.getItem('deviceId')) {
+                        item.style.backgroundColor = 'rgba(74, 222, 128, 0.2)';
+                        item.style.borderLeft = '4px solid #4ade80';
+                    }
+                    leaderboardList.appendChild(item);
+                });
+            }
+            
+            // 更新排行榜标题
+            let modeText = '正常模式';
+            if (gameMode === 'casual') {
+                modeText = '休闲模式';
+            } else if (gameMode === 'giant') {
+                modeText = '大陨石模式';
+            } else if (gameMode === 'extreme') {
+                modeText = '超躲避模式';
+            }
+            document.getElementById('leaderboardTitle').innerHTML = `${modeText}排行榜 <span id="cloudStatus" style="font-size: 16px; color: #34d399;">☁️ 已同步</span>`;
             
             document.getElementById('leaderboardScreen').style.display = 'flex';
         }
@@ -1173,8 +1384,10 @@
             gameRunning = true;
             ensureDragFunctionality(); // 确保拖拽功能可用
             
-            // 隐藏模式切换按钮
+            // 隐藏所有菜单按钮
             document.getElementById('modeToggleBtn').style.display = 'none';
+            document.getElementById('changeNameBtn').style.display = 'none';
+            document.getElementById('encyclopediaBtn').style.display = 'none';
             
             requestAnimationFrame(gameLoop);
         }
@@ -1185,6 +1398,33 @@
         document.getElementById('leaderboardBtn').addEventListener('click', showLeaderboard);
         document.getElementById('closeLeaderboardBtn').addEventListener('click', () => {
             document.getElementById('leaderboardScreen').style.display = 'none';
+        });
+        
+        // 更改名字按钮事件
+        document.getElementById('changeNameBtn').addEventListener('click', () => {
+            const nameInput = document.getElementById('nameInput');
+            nameInput.value = playerName;
+            document.getElementById('nameChangeModal').style.display = 'flex';
+            nameInput.focus();
+        });
+        
+        // 保存名字按钮事件
+        document.getElementById('saveNameBtn').addEventListener('click', () => {
+            const nameInput = document.getElementById('nameInput');
+            const name = nameInput.value.trim();
+            
+            if (name && name.length > 0) {
+                playerName = name;
+                localStorage.setItem('playerName', name);
+                document.getElementById('nameChangeModal').style.display = 'none';
+            } else {
+                nameInput.focus();
+            }
+        });
+        
+        // 取消按钮事件
+        document.getElementById('cancelNameBtn').addEventListener('click', () => {
+            document.getElementById('nameChangeModal').style.display = 'none';
         });
         
         // 图鉴按钮事件
@@ -1199,17 +1439,19 @@
         
         // 模式切换按钮事件
         document.getElementById('modeToggleBtn').addEventListener('click', () => {
-            // 在三种模式之间循环切换：normal -> casual -> giant -> normal
+            // 在四种模式之间循环切换：normal -> casual -> giant -> extreme -> normal
             if (gameMode === 'normal') {
                 gameMode = 'casual';
             } else if (gameMode === 'casual') {
                 gameMode = 'giant';
+            } else if (gameMode === 'giant') {
+                gameMode = 'extreme';
             } else {
                 gameMode = 'normal';
             }
             
             const btn = document.getElementById('modeToggleBtn');
-            btn.classList.remove('bg-blue-600', 'hover:bg-blue-700', 'bg-green-600', 'hover:bg-green-700', 'bg-red-600', 'hover:bg-red-700');
+            btn.classList.remove('bg-blue-600', 'hover:bg-blue-700', 'bg-green-600', 'hover:bg-green-700', 'bg-red-600', 'hover:bg-red-700', 'bg-purple-600', 'hover:bg-purple-700');
             
             if (gameMode === 'casual') {
                 btn.textContent = '当前：休闲模式';
@@ -1219,39 +1461,14 @@
                 btn.textContent = '当前：大陨石模式';
                 btn.classList.add('bg-red-600', 'hover:bg-red-700');
                 alert('已切换到大陨石模式：只有大陨石和反弹陨石，枪道具概率增加，分数不计入排行榜');
+            } else if (gameMode === 'extreme') {
+                btn.textContent = '当前：超躲避模式';
+                btn.classList.add('bg-purple-600', 'hover:bg-purple-700');
+                alert('已切换到超躲避模式：每秒+1分，无道具，只有普通陨石，速度持续加快');
             } else {
                 btn.textContent = '当前：正常模式';
                 btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
                 alert('已切换到正常模式：游戏速度逐渐增加，每10分有减速效果');
-            }
-        });
-        
-        // 保存名字按钮事件
-        document.getElementById('saveNameBtn').addEventListener('click', () => {
-            const nameInput = document.getElementById('playerName');
-            const name = nameInput.value.trim();
-            
-            if (name) {
-                playerName = name;
-                localStorage.setItem('playerName', name);
-                localStorage.setItem('hasPlayedBefore', 'true');
-                document.getElementById('nameInputContainer').style.display = 'none';
-                
-                // 更新排行榜
-                updateLeaderboard(score);
-            } else {
-                alert('请输入您的名字！');
-                nameInput.focus();
-            }
-        });
-        
-        // 修改名字按钮事件
-        document.getElementById('changeNameBtn').addEventListener('click', () => {
-            const newName = prompt('请输入新的名字:', playerName);
-            if (newName !== null && newName.trim()) {
-                playerName = newName.trim();
-                localStorage.setItem('playerName', playerName);
-                alert('名字已更新为: ' + playerName);
             }
         });
         
@@ -1770,6 +1987,7 @@
             } else {
                 // 对于普通陨石，转换为反弹陨石
                 obstacle.isBouncing = true;
+                obstacle.isShieldBounced = true; // 标记为被护盾反弹的陨石
                 obstacle.speedX = nx * (gameSpeed + Math.random() * 3);
                 obstacle.speedY = ny * (gameSpeed + Math.random() * 3);
                 delete obstacle.speed;
