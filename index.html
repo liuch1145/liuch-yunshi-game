@@ -1,0 +1,1904 @@
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <meta name="description" content="太空躲避游戏 - 一款刺激的躲避类游戏，在太空中躲避陨石，收集金币和道具！">
+    <title>太空躲避游戏</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.544.0/dist/umd/lucide.min.js"></script>
+    <style>
+        body {
+            overflow: hidden;
+            touch-action: none;
+        }
+        #gameCanvas {
+            background-color: #000;
+            background-image: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+            radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+            radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px),
+            radial-gradient(rgba(255,255,255,.4), rgba(255,255,255,.1) 2px, transparent 30px);
+            background-size: 550px 550px, 350px 350px, 250px 250px, 150px 150px;
+            background-position: 0 0, 40px 60px, 130px 270px, 70px 100px;
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .game-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .score-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+        .lives-display {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+        .life-icon {
+            width: 30px;
+            height: 30px;
+            background-color: red;
+            border-radius: 50%;
+        }
+        .life-collect {
+            animation: lifeCollect 0.5s ease-out;
+        }
+        @keyframes lifeCollect {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        .game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            display: none;
+        }
+        .game-title {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #4ade80;
+            text-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+        }
+        .final-score {
+            font-size: 36px;
+            margin-bottom: 40px;
+        }
+        .button {
+            padding: 15px 30px;
+            font-size: 20px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            pointer-events: auto;
+            min-width: 200px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .play-again-btn {
+            background-color: #4ade80;
+            color: white;
+        }
+        .play-again-btn:hover {
+            background-color: #22c55e;
+            transform: scale(1.05);
+        }
+        .leaderboard-btn {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .leaderboard-btn:hover {
+            background-color: #2563eb;
+            transform: scale(1.05);
+        }
+        .start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        .start-btn {
+            background-color: #4ade80;
+            color: white;
+        }
+        .start-btn:hover {
+            background-color: #22c55e;
+            transform: scale(1.05);
+        }
+        .leaderboard-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            display: none;
+        }
+        .leaderboard-title {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #3b82f6;
+            text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+        .leaderboard-list {
+            width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 30px;
+        }
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .close-btn {
+            background-color: #ef4444;
+            color: white;
+        }
+        .close-btn:hover {
+            background-color: #dc2626;
+            transform: scale(1.05);
+        }
+        .encyclopedia-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .encyclopedia-content {
+            background-color: #1f2937;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 900px;
+            max-height: 80vh;
+            overflow-y: auto;
+            text-align: center;
+        }
+        .encyclopedia-title {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #f59e0b;
+        }
+        .encyclopedia-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .encyclopedia-item {
+            background-color: #374151;
+            border-radius: 10px;
+            padding: 15px;
+            transition: transform 0.3s ease;
+        }
+        .encyclopedia-item:hover {
+            transform: translateY(-5px);
+        }
+        .encyclopedia-image {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            margin-bottom: 10px;
+        }
+        .encyclopedia-image.giant {
+            width: 80px;
+            height: 80px;
+        }
+        .encyclopedia-shield-item {
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.6) 0%, rgba(37, 99, 235, 0.8) 100%);
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            border: 2px solid #60a5fa;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+        }
+        .encyclopedia-life-item {
+            width: 60px;
+            height: 60px;
+            background-color: #ef4444;
+            clip-path: path('M30 50C30 50 0 25 0 15C0 8.37258 5.37258 3 12 3C16.4183 3 20.4183 5.82612 24 9.5C27.5817 5.82612 31.5817 3 36 3C42.6274 3 48 8.37258 48 15C48 25 18 50 18 50H30Z');
+            margin: 0 auto 10px;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+        .encyclopedia-gun-item {
+            width: 60px;
+            height: 60px;
+            position: relative;
+            margin: 0 auto 10px;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.8) 0%, rgba(153, 27, 27, 1) 100%);
+            border-radius: 4px;
+        }
+        .encyclopedia-gun-item::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 12px;
+            width: 36px;
+            height: 20px;
+            background: linear-gradient(45deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
+            clip-path: polygon(0 50%, 100% 30%, 100% 70%, 0 50%);
+        }
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .tutorial {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            text-align: center;
+            font-size: 18px;
+            max-width: 500px;
+            line-height: 1.5;
+            z-index: 10;
+            padding: 0 10px;
+        }
+        .dragging {
+            cursor: grabbing;
+        }
+        .coin-collect {
+            animation: coinCollect 0.5s ease-out;
+        }
+        @keyframes coinCollect {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        .player-hit {
+            animation: playerHit 0.5s ease-out;
+        }
+        @keyframes playerHit {
+            0% { filter: brightness(1); }
+            50% { filter: brightness(2) sepia(1) hue-rotate(-50deg) saturate(5); }
+            100% { filter: brightness(1); }
+        }
+        .shield-active {
+            animation: shieldPulse 1s infinite alternate;
+        }
+        
+        /* 护盾即将消失时的红蓝闪烁效果 */
+        .shield-warning {
+            animation: shieldWarning 0.5s infinite alternate;
+        }
+        
+        @keyframes shieldPulse {
+            0% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        @keyframes shieldWarning {
+            0% { 
+                opacity: 0.7;
+                filter: hue-rotate(0deg);
+            }
+            100% { 
+                opacity: 1;
+                filter: hue-rotate(180deg);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-900">
+    <div class="game-container">
+        <!-- 制作者信息 -->
+        <div class="creator-info fixed top-2 left-1/2 transform -translate-x-1/2 text-white text-sm z-50">
+            <div>制作人：刘创</div>
+            <div>指导：豆包</div>
+        </div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <!-- 模式切换按钮 - 放在最外层确保始终可见 -->
+        <div class="mode-toggle absolute bottom-4 left-4 z-50">
+            <button id="modeToggleBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                当前：正常模式
+            </button>
+        </div>
+        
+        <!-- 图鉴按钮 -->
+        <div class="encyclopedia-toggle absolute bottom-4 right-4 z-50">
+            <button id="encyclopediaBtn" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                图鉴
+            </button>
+        </div>
+        
+        <div class="ui-overlay">
+            <div class="score-display">得分: <span id="score">0</span></div>
+            <div class="lives-display">
+                <div class="life-icon" id="life1"></div>
+                <div class="life-icon" id="life2"></div>
+                <div class="life-icon" id="life3"></div>
+            </div>
+        </div>
+        <div class="start-screen" id="startScreen">
+            <h1 class="game-title">太空躲避</h1>
+            <p class="tutorial">拖动宇航员左右移动，躲避陨石，收集金币！</p>
+            <button class="button start-btn" id="startBtn">开始游戏</button>
+        </div>
+        <!-- 图鉴界面 -->
+        <div class="encyclopedia-screen" id="encyclopediaScreen" style="display: none;">
+            <div class="encyclopedia-content">
+                <h2 class="encyclopedia-title">游戏图鉴</h2>
+                <div class="encyclopedia-grid">
+                    <!-- 普通陨石 -->
+                    <div class="encyclopedia-item">
+                        <img src="https://p11-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/037dd0cafd5e41f98f0bd54fd6fd4960~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260224112551C44E407D1D1E428E7584&rrcfp=f06b921b&x-expires=1774495582&x-signature=jTaJTdGfVg6aNMx6RCKAH8k6ywg%3D" alt="普通陨石" class="encyclopedia-image">
+                        <h3>普通陨石</h3>
+                        <p>最常见的障碍物，从顶部落下，碰到会损失一条生命。</p>
+                    </div>
+                    <!-- 反弹陨石 -->
+                    <div class="encyclopedia-item">
+                        <img src="https://p11-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/037dd0cafd5e41f98f0bd54fd6fd4960~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260224112551C44E407D1D1E428E7584&rrcfp=f06b921b&x-expires=1774495582&x-signature=jTaJTdGfVg6aNMx6RCKAH8k6ywg%3D" alt="反弹陨石" class="encyclopedia-image">
+                        <h3>反弹陨石</h3>
+                        <p>碰到地面会反弹的陨石，移动轨迹更难预测。</p>
+                    </div>
+                    <!-- 巨大陨石 -->
+                    <div class="encyclopedia-item">
+                        <img src="https://p11-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/037dd0cafd5e41f98f0bd54fd6fd4960~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260224112551C44E407D1D1E428E7584&rrcfp=f06b921b&x-expires=1774495582&x-signature=jTaJTdGfVg6aNMx6RCKAH8k6ywg%3D" alt="巨大陨石" class="encyclopedia-image giant">
+                        <h3>巨大陨石</h3>
+                        <p>体积巨大的陨石，需要10发子弹才能消灭，到达底部会生成15个反弹陨石。</p>
+                    </div>
+                    <!-- 金币 -->
+                    <div class="encyclopedia-item">
+                        <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/1df7804e07b64153a94d0ac8df3302e5~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260224112551C44E407D1D1E428E7584&rrcfp=f06b921b&x-expires=1774495594&x-signature=ur91ZX%2FBp8FgfFcTxkgAFcMtIHw%3D" alt="金币" class="encyclopedia-image">
+                        <h3>金币</h3>
+                        <p>收集金币获得分数，每10分在正常模式下会触发减速效果。</p>
+                    </div>
+                    <!-- 护盾道具 -->
+                    <div class="encyclopedia-item">
+                        <div class="encyclopedia-shield-item"></div>
+                        <h3>护盾道具</h3>
+                        <p>激活后获得10秒护盾效果，可以反弹陨石，即将消失时会红蓝交替闪烁。</p>
+                    </div>
+                    <!-- 生命道具 -->
+                    <div class="encyclopedia-item">
+                        <div class="encyclopedia-life-item"></div>
+                        <h3>生命道具</h3>
+                        <p>收集后增加一条生命，最高可增加到5条。</p>
+                    </div>
+                    <!-- 枪道具 -->
+                    <div class="encyclopedia-item">
+                        <div class="encyclopedia-gun-item"></div>
+                        <h3>枪道具</h3>
+                        <p>激活后获得20秒自动发射子弹的能力，可升级为三发和全屏弹幕。</p>
+                    </div>
+                </div>
+                <button class="button close-btn" id="closeEncyclopediaBtn">关闭</button>
+            </div>
+        </div>
+
+        <div class="game-over-screen" id="gameOverScreen">
+            <h1 class="game-title">游戏结束</h1>
+            <div class="final-score">最终得分: <span id="finalScore">0</span></div>
+            <button class="button play-again-btn" id="playAgainBtn">再来一次</button>
+            <button class="button leaderboard-btn" id="leaderboardBtn">排行榜</button>
+        </div>
+        <div class="leaderboard-screen" id="leaderboardScreen">
+            <h2 class="leaderboard-title">排行榜</h2>
+            <div class="leaderboard-list" id="leaderboardList">
+                <!-- 排行榜数据将在这里动态生成 -->
+            </div>
+            <button class="button close-btn" id="closeLeaderboardBtn">关闭</button>
+        </div>
+    </div>
+
+    <script>
+        // 游戏变量
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 移动速度常量
+        const MOVE_SPEED = 15;
+        let isMovingLeft = false;
+        let isMovingRight = false;
+        
+        // 响应式调整Canvas大小
+        function resizeCanvas() {
+            const container = document.querySelector('.game-container');
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+            
+            // 保持4:3的宽高比
+            const targetWidth = Math.min(containerWidth, containerHeight * 4/3);
+            const targetHeight = targetWidth * 3/4;
+            
+            canvas.width = 800; // 保持原始分辨率以保证游戏逻辑正常
+            canvas.height = 600;
+            
+            // 设置CSS大小以适应屏幕
+            canvas.style.width = `${targetWidth}px`;
+            canvas.style.height = `${targetHeight}px`;
+        }
+        
+        // 初始化时调整Canvas大小
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        // 初始化键盘控制
+        initKeyboardControls();
+        
+        // 初始化键盘控制
+        function initKeyboardControls() {
+            // 键盘事件支持
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') {
+                    isMovingLeft = true;
+                } else if (e.key === 'ArrowRight') {
+                    isMovingRight = true;
+                } else if (e.key === '1' && gameRunning && !shieldActive) {
+                    // 激活10秒盾牌
+                    activateShield();
+                    // 添加按键反馈
+                    console.log('激活10秒盾牌！');
+                }
+            });
+            
+            document.addEventListener('keyup', (e) => {
+                if (e.key === 'ArrowLeft') {
+                    isMovingLeft = false;
+                } else if (e.key === 'ArrowRight') {
+                    isMovingRight = false;
+                }
+            });
+        }
+        let score = 0;
+        let lives = 3;
+        let maxLives = 5; // 最大生命值
+        let gameRunning = false;
+        let gameSpeed = 5;
+        let lastObstacleTime = 0;
+        let obstacleInterval = 1000; // 初始障碍物生成间隔（毫秒）
+        let lastCoinTime = 0;
+        let coinInterval = 3000; // 初始金币生成间隔（毫秒）
+        let lastShieldItemTime = 0;
+        let shieldItemInterval = 15000; // 初始护盾道具生成间隔（毫秒）
+        let lastLifeItemTime = 0;
+        let lifeItemInterval = 10000; // 生命道具生成间隔（毫秒）
+        let obstacleCount = 1; // 每次生成的障碍物数量
+        let shieldActive = false;
+        let shieldDuration = 10000; // 护盾持续时间（毫秒）- 改为10秒
+        let shieldEndTime = 0;
+        let lifeItemSpawned = false; // 标记生命道具是否已生成
+        let gunActive = false;
+        let gunEndTime = 0;
+        let lastGunItemTime = 0;
+        let gunItemInterval = 12000;
+        let bulletInterval = 50; // 0.05秒/发
+        let lastBulletTime = 0;
+        let gunDuration = 20000; // 枪道具持续20秒
+        let bulletCount = 1; // 当前发射的子弹数量
+        let gunLevel = 1; // 枪的等级：1=单发，2=双发，3=三发，4=全屏子弹
+        let gameMode = 'normal'; // 'normal', 'casual' 或 'giant'
+        
+        // 玩家对象
+        const player = {
+            x: canvas.width / 2 - 25,
+            y: canvas.height - 80,
+            width: 50,
+            height: 50,
+            isDragging: false,
+            image: new Image()
+        };
+        player.image.src = 'https://p11-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/cfcf315374964e838e12fb7ae12c9ee2~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260224112551C44E407D1D1E428E7584&rrcfp=f06b921b&x-expires=1774495571&x-signature=Mtyqzhop9zFLsDfqVkl3z8X0LkU%3D';
+        
+        // 障碍物、金币、护盾道具、生命道具、枪道具和子弹数组
+        const obstacles = [];
+        const coins = [];
+        const shieldItems = [];
+        const lifeItems = [];
+        const gunItems = [];
+        const bullets = [];
+        
+        // 障碍物图像
+        const obstacleImage = new Image();
+        obstacleImage.src = 'https://p11-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/037dd0cafd5e41f98f0bd54fd6fd4960~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260224112551C44E407D1D1E428E7584&rrcfp=f06b921b&x-expires=1774495582&x-signature=jTaJTdGfVg6aNMx6RCKAH8k6ywg%3D';
+        
+        // 金币图像
+        const coinImage = new Image();
+        coinImage.src = 'https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/1df7804e07b64153a94d0ac8df3302e5~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260224112551C44E407D1D1E428E7584&rrcfp=f06b921b&x-expires=1774495594&x-signature=ur91ZX%2FBp8FgfFcTxkgAFcMtIHw%3D';
+        
+        // 加载排行榜数据
+        let leaderboard = JSON.parse(localStorage.getItem('dodgeGameLeaderboard')) || [];
+        
+        // 游戏循环
+        function gameLoop(timestamp) {
+            if (!gameRunning) return;
+            
+            // 处理键盘移动
+            handleKeyboardMovement();
+            
+            // 更新护盾状态和警告效果
+            updateShieldStatus(timestamp);
+            
+            // 清除画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制玩家
+            ctx.drawImage(player.image, player.x, player.y, player.width, player.height);
+            
+            // 生成障碍物
+            if (timestamp - lastObstacleTime > obstacleInterval) {
+                // 根据游戏进度生成多个障碍物
+                for (let i = 0; i < obstacleCount; i++) {
+                    createObstacle();
+                }
+                lastObstacleTime = timestamp;
+                
+                // 随着游戏进行，障碍物生成速度逐渐加快
+                obstacleInterval = Math.max(500, obstacleInterval - 10);
+                
+                // 每10秒增加一次障碍物生成数量（最多5个）
+                if (score > 0 && score % 10 === 0 && obstacleCount < 5) {
+                    obstacleCount++;
+                }
+            }
+            
+            // 生成金币
+            if (timestamp - lastCoinTime > coinInterval) {
+                createCoin();
+                lastCoinTime = timestamp;
+                // 金币生成间隔也会逐渐缩短，但比障碍物慢
+                coinInterval = Math.max(2000, coinInterval - 5);
+            }
+            
+            // 生成护盾道具（10%概率）- 盾牌激活期间不生成
+            if (!shieldActive && timestamp - lastShieldItemTime > shieldItemInterval && Math.random() < 0.1) {
+                createShieldItem();
+                lastShieldItemTime = timestamp;
+                // 护盾道具生成间隔随机化
+                shieldItemInterval = 15000 + Math.random() * 10000;
+            }
+            
+            // 当分数达到9且生命值小于最大值且生命道具尚未生成时，生成生命道具
+            if (score >= 9 && lives < maxLives && !lifeItemSpawned && timestamp - lastLifeItemTime > lifeItemInterval) {
+                createLifeItem();
+                lifeItemSpawned = true; // 标记生命道具已生成
+                lastLifeItemTime = timestamp;
+            }
+            
+            // 根据游戏模式生成枪道具
+            let gunProbability = 0.15; // 基础概率
+            let gunScoreRequirement = 10; // 基础分数要求
+            
+            if (gameMode === 'giant') {
+                gunProbability = 0.4; // 大陨石模式下枪道具概率增加到40%
+                gunScoreRequirement = 0; // 大陨石模式下移除分数限制
+            }
+            
+            if (score >= gunScoreRequirement && timestamp - lastGunItemTime > gunItemInterval && Math.random() < gunProbability) {
+                createGunItem();
+                lastGunItemTime = timestamp;
+                // 枪道具生成间隔随机化
+                gunItemInterval = 12000 + Math.random() * 8000;
+            }
+            
+            // 更新护盾状态
+            if (shieldActive && timestamp > shieldEndTime) {
+                deactivateShield();
+            }
+            
+            // 更新枪状态
+            if (gunActive) {
+                if (timestamp > gunEndTime) {
+                    deactivateGun();
+                } else {
+                    // 快速发射子弹
+                    if (timestamp - lastBulletTime > bulletInterval) {
+                        createBullet();
+                        lastBulletTime = timestamp;
+                    }
+                }
+            }
+            
+            // 更新和绘制障碍物
+            updateObstacles();
+            
+            // 更新和绘制金币
+            updateCoins();
+            
+            // 更新和绘制护盾道具
+            updateShieldItems();
+            
+            // 更新和绘制生命道具
+            updateLifeItems();
+            
+            // 更新和绘制枪道具
+            updateGunItems();
+            
+            // 更新和绘制子弹
+            updateBullets();
+            
+            // 检查碰撞
+            checkCollisions();
+            
+            // 更新游戏速度（仅在正常模式下）
+            if (gameMode === 'normal') {
+                gameSpeed += 0.005;
+            }
+            
+            // 请求下一帧
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // 创建障碍物
+        function createObstacle() {
+            // 根据游戏模式决定是否生成巨大陨石
+            let isGiant = false;
+            if (gameMode === 'giant') {
+                // 大陨石模式：25%概率生成巨大陨石
+                isGiant = Math.random() < 0.25;
+            } else {
+                // 其他模式：分数到达10后，有概率出现巨大陨石（0.25%概率）
+                isGiant = score >= 10 && Math.random() < 0.0025;
+            }
+            
+            if (isGiant) {
+                // 创建巨大陨石
+                const obstacle = {
+                    x: Math.random() * (canvas.width - 150),
+                    y: -150,
+                    width: 150,
+                    height: 150,
+                    speed: (gameSpeed * 0.1) + Math.random() * 0.125, // 移速为原来的四分之一
+                    isBouncing: false,
+                    isGiant: true,
+                    health: 10 // 需要10发子弹才能消灭
+                };
+                obstacles.push(obstacle);
+            } else if (gameMode !== 'giant') {
+                // 随机决定是否创建反弹陨石（20%概率）
+                const isBouncing = Math.random() < 0.2;
+                
+                if (isBouncing) {
+                    // 创建反弹陨石
+                    const bounceAngle = (Math.random() - 0.5) * Math.PI / 2; // -45度到45度
+                    const obstacle = {
+                        x: Math.random() * (canvas.width - 50),
+                        y: -50,
+                        width: 50,
+                        height: 50,
+                        speedX: Math.sin(bounceAngle) * (gameSpeed + Math.random() * 2),
+                        speedY: Math.cos(bounceAngle) * (gameSpeed + Math.random() * 2),
+                        isBouncing: true,
+                        isGiant: false
+                    };
+                    obstacles.push(obstacle);
+                } else {
+                    // 创建普通陨石
+                    const obstacle = {
+                        x: Math.random() * (canvas.width - 50),
+                        y: -50,
+                        width: 50,
+                        height: 50,
+                        speed: gameSpeed + Math.random() * 2,
+                        isBouncing: false,
+                        isGiant: false
+                    };
+                    obstacles.push(obstacle);
+                }
+            }
+        }
+        
+        // 创建金币
+        function createCoin() {
+            const coin = {
+                x: Math.random() * (canvas.width - 30),
+                y: -30,
+                width: 30,
+                height: 30,
+                speed: gameSpeed - 1 + Math.random() * 2
+            };
+            coins.push(coin);
+        }
+        
+        // 更新障碍物
+        function updateObstacles() {
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obstacle = obstacles[i];
+                
+                if (obstacle.isBouncing) {
+                    // 更新反弹陨石位置
+                    obstacle.x += obstacle.speedX;
+                    obstacle.y += obstacle.speedY;
+                    
+                    // 检测左右墙壁碰撞
+                    if (obstacle.x <= 0 || obstacle.x + obstacle.width >= canvas.width) {
+                        obstacle.speedX = -obstacle.speedX;
+                        obstacle.x = Math.max(0, Math.min(canvas.width - obstacle.width, obstacle.x));
+                    }
+                } else {
+                    // 更新普通陨石或巨大陨石位置
+                    obstacle.y += obstacle.speed;
+                }
+                
+                // 绘制障碍物
+                if (obstacle.isGiant) {
+                    // 绘制巨大陨石，可能需要缩放图像
+                    ctx.drawImage(obstacleImage, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                    
+                    // 绘制血量条
+                    drawHealthBar(obstacle);
+                    
+                    // 如果巨大陨石完全到达最下方，生成反弹陨石
+                    if (obstacle.y + obstacle.height >= canvas.height) {
+                        spawnBounceMeteors(obstacle.x + obstacle.width / 2);
+                        obstacles.splice(i, 1);
+                        continue;
+                    }
+                } else {
+                    ctx.drawImage(obstacleImage, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                }
+                
+                // 移除屏幕外的障碍物
+                if (obstacle.y > canvas.height) {
+                    obstacles.splice(i, 1);
+                }
+            }
+            
+            // 绘制护盾（如果激活）
+            if (shieldActive) {
+                drawShield();
+            }
+        }
+        
+        // 创建护盾道具
+        function createShieldItem() {
+            const shieldItem = {
+                x: Math.random() * (canvas.width - 40),
+                y: -40,
+                width: 40,
+                height: 40,
+                speed: gameSpeed - 2 + Math.random() * 2
+            };
+            shieldItems.push(shieldItem);
+        }
+        
+        // 更新护盾道具
+        function updateShieldItems() {
+            for (let i = shieldItems.length - 1; i >= 0; i--) {
+                const shieldItem = shieldItems[i];
+                shieldItem.y += shieldItem.speed;
+                
+                // 绘制护盾道具
+                ctx.beginPath();
+                ctx.arc(
+                    shieldItem.x + shieldItem.width / 2,
+                    shieldItem.y + shieldItem.height / 2,
+                    shieldItem.width / 2,
+                    0,
+                    Math.PI * 2
+                );
+                
+                // 创建护盾道具的渐变效果
+                const gradient = ctx.createRadialGradient(
+                    shieldItem.x + shieldItem.width / 3,
+                    shieldItem.y + shieldItem.height / 3,
+                    0,
+                    shieldItem.x + shieldItem.width / 2,
+                    shieldItem.y + shieldItem.height / 2,
+                    shieldItem.width / 2
+                );
+                gradient.addColorStop(0, 'rgba(59, 130, 246, 0.8)');
+                gradient.addColorStop(1, 'rgba(37, 99, 235, 1)');
+                
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                // 绘制护盾道具内部的符号
+                ctx.beginPath();
+                ctx.arc(
+                    shieldItem.x + shieldItem.width / 2,
+                    shieldItem.y + shieldItem.height / 2,
+                    shieldItem.width / 4,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.fill();
+                
+                // 移除屏幕外的护盾道具
+                if (shieldItem.y > canvas.height) {
+                    shieldItems.splice(i, 1);
+                }
+            }
+        }
+        
+        // 更新金币
+        function updateCoins() {
+            for (let i = coins.length - 1; i >= 0; i--) {
+                const coin = coins[i];
+                coin.y += coin.speed;
+                
+                // 绘制金币
+                ctx.drawImage(coinImage, coin.x, coin.y, coin.width, coin.height);
+                
+                // 移除屏幕外的金币
+                if (coin.y > canvas.height) {
+                    coins.splice(i, 1);
+                }
+            }
+        }
+        
+        // 检查碰撞
+        function checkCollisions() {
+            // 检查子弹与障碍物的碰撞
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const bullet = bullets[i];
+                
+                for (let j = obstacles.length - 1; j >= 0; j--) {
+                    const obstacle = obstacles[j];
+                    
+                    if (
+                        bullet.x < obstacle.x + obstacle.width &&
+                        bullet.x + bullet.width > obstacle.x &&
+                        bullet.y < obstacle.y + obstacle.height &&
+                        bullet.y + bullet.height > obstacle.y
+                    ) {
+                        // 移除子弹
+                        bullets.splice(i, 1);
+                        
+                        if (obstacle.isGiant) {
+                            // 巨大陨石减少血量
+                            obstacle.health--;
+                            if (obstacle.health <= 0) {
+                                // 巨大陨石被消灭
+                                obstacles.splice(j, 1);
+                                score += 1; // 消灭巨大陨石获得分数
+                                document.getElementById('score').textContent = score;
+                            }
+                        } else {
+                            // 普通陨石直接消失
+                            obstacles.splice(j, 1);
+                        }
+                        break;
+                    }
+                }
+            }
+            
+            // 检查与障碍物的碰撞
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obstacle = obstacles[i];
+                
+                // 检查是否与玩家碰撞
+                if (
+                    player.x < obstacle.x + obstacle.width &&
+                    player.x + player.width > obstacle.x &&
+                    player.y < obstacle.y + obstacle.height &&
+                    player.y + player.height > obstacle.y
+                ) {
+                    if (shieldActive) {
+                        // 护盾反弹陨石
+                        bounceOffShield(obstacle);
+                    } else {
+                        // 玩家被击中
+                        playerHit();
+                        if (!obstacle.isGiant) {
+                            obstacles.splice(i, 1);
+                        }
+                    }
+                    break;
+                }
+                
+                // 如果护盾激活，检查是否与护盾碰撞
+                if (shieldActive && isCollidingWithShield(obstacle)) {
+                    bounceOffShield(obstacle);
+                }
+            }
+            
+            // 检查与金币的碰撞
+            for (let i = coins.length - 1; i >= 0; i--) {
+                const coin = coins[i];
+                if (
+                    player.x < coin.x + coin.width &&
+                    player.x + player.width > coin.x &&
+                    player.y < coin.y + coin.height &&
+                    player.y + player.height > coin.y
+                ) {
+                    // 收集金币
+                    collectCoin();
+                    coins.splice(i, 1);
+                    break;
+                }
+            }
+            
+            // 检查与护盾道具的碰撞
+            for (let i = shieldItems.length - 1; i >= 0; i--) {
+                const shieldItem = shieldItems[i];
+                if (
+                    player.x < shieldItem.x + shieldItem.width &&
+                    player.x + player.width > shieldItem.x &&
+                    player.y < shieldItem.y + shieldItem.height &&
+                    player.y + player.height > shieldItem.y
+                ) {
+                    // 收集护盾道具并激活护盾
+                    activateShield();
+                    shieldItems.splice(i, 1);
+                    break;
+                }
+            }
+            
+            // 检查与生命道具的碰撞
+            for (let i = lifeItems.length - 1; i >= 0; i--) {
+                const lifeItem = lifeItems[i];
+                if (
+                    player.x < lifeItem.x + lifeItem.width &&
+                    player.x + player.width > lifeItem.x &&
+                    player.y < lifeItem.y + lifeItem.height &&
+                    player.y + player.height > lifeItem.y
+                ) {
+                    // 收集生命道具
+                    collectLifeItem();
+                    lifeItems.splice(i, 1);
+                    break;
+                }
+            }
+            
+            // 检查与枪道具的碰撞
+            for (let i = gunItems.length - 1; i >= 0; i--) {
+                const gunItem = gunItems[i];
+                if (
+                    player.x < gunItem.x + gunItem.width &&
+                    player.x + player.width > gunItem.x &&
+                    player.y < gunItem.y + gunItem.height &&
+                    player.y + player.height > gunItem.y
+                ) {
+                    // 收集枪道具
+                    collectGunItem();
+                    gunItems.splice(i, 1);
+                    break;
+                }
+            }
+        }
+        
+        // 玩家被击中
+        function playerHit() {
+            lives--;
+            updateLivesDisplay();
+            
+            // 添加被击中的视觉效果
+            canvas.classList.add('player-hit');
+            setTimeout(() => {
+                canvas.classList.remove('player-hit');
+            }, 500);
+            
+            // 检查游戏是否结束
+            if (lives <= 0) {
+                gameOver();
+            }
+        }
+        
+        // 收集金币
+        function collectCoin() {
+            score++;
+            document.getElementById('score').textContent = score;
+            
+            // 每获得10分就降慢所有东西的移速（原来的4分之1）- 仅在正常模式下
+            if (gameMode === 'normal' && score > 0 && score % 10 === 0) {
+                slowDownGame();
+            }
+            
+            // 添加收集金币的视觉效果
+            const coinEffect = document.createElement('div');
+            coinEffect.className = 'coin-collect';
+            coinEffect.style.position = 'absolute';
+            coinEffect.style.width = '30px';
+            coinEffect.style.height = '30px';
+            coinEffect.style.backgroundImage = `url(${coinImage.src})`;
+            coinEffect.style.backgroundSize = 'cover';
+            coinEffect.style.left = `${player.x + player.width / 2 - 15}px`;
+            coinEffect.style.top = `${player.y + player.height / 2 - 15}px`;
+            document.querySelector('.game-container').appendChild(coinEffect);
+            
+            setTimeout(() => {
+                coinEffect.remove();
+            }, 500);
+        }
+        
+        // 更新生命值显示
+        function updateLivesDisplay() {
+            // 确保有足够的生命图标元素
+            const livesContainer = document.querySelector('.lives-display');
+            livesContainer.innerHTML = ''; // 清空现有图标
+            
+            // 创建生命图标
+            for (let i = 1; i <= maxLives; i++) {
+                const lifeElement = document.createElement('div');
+                lifeElement.className = 'life-icon';
+                lifeElement.id = `life${i}`;
+                lifeElement.style.display = i <= lives ? 'block' : 'none';
+                livesContainer.appendChild(lifeElement);
+            }
+        }
+        
+        // 游戏结束
+        function gameOver() {
+            // 立即保存当前分数，防止后续操作影响
+            const finalScore = score;
+            console.log('游戏结束，最终得分:', finalScore);
+            
+            // 立即停止游戏循环
+            gameRunning = false;
+            
+            // 显示模式切换按钮
+            document.getElementById('modeToggleBtn').style.display = 'block';
+            
+            // 显示游戏结束屏幕
+            document.getElementById('gameOverScreen').style.display = 'flex';
+            
+            // 使用多种方式确保最终得分正确显示
+            // 1. 立即显示
+            document.getElementById('finalScore').textContent = finalScore;
+            
+            // 2. 使用setTimeout确保DOM更新
+            setTimeout(() => {
+                document.getElementById('finalScore').textContent = finalScore;
+                console.log('第一次尝试显示最终得分:', finalScore);
+            }, 0);
+            
+            // 3. 使用requestAnimationFrame确保在渲染前更新
+            requestAnimationFrame(() => {
+                document.getElementById('finalScore').textContent = finalScore;
+                console.log('第二次尝试显示最终得分:', finalScore);
+            });
+            
+            // 4. 使用较长延迟作为保险
+            setTimeout(() => {
+                document.getElementById('finalScore').textContent = finalScore;
+                console.log('第三次尝试显示最终得分:', finalScore);
+            }, 100);
+            
+            // 更新排行榜（仅在正常模式下）
+            if (gameMode === 'normal') {
+                updateLeaderboard(finalScore);
+            }
+        }
+        
+        // 更新排行榜
+        function updateLeaderboard(score) {
+            // 添加新分数
+            leaderboard.push(score);
+            
+            // 按分数排序
+            leaderboard.sort((a, b) => b - a);
+            
+            // 只保留前10名
+            leaderboard = leaderboard.slice(0, 10);
+            
+            // 保存到本地存储
+            localStorage.setItem('dodgeGameLeaderboard', JSON.stringify(leaderboard));
+        }
+        
+        // 显示排行榜
+        function showLeaderboard() {
+            const leaderboardList = document.getElementById('leaderboardList');
+            leaderboardList.innerHTML = '';
+            
+            leaderboard.forEach((score, index) => {
+                const item = document.createElement('div');
+                item.className = 'leaderboard-item';
+                item.innerHTML = `
+                    <span>${index + 1}</span>
+                    <span>${score}</span>
+                `;
+                leaderboardList.appendChild(item);
+            });
+            
+            document.getElementById('leaderboardScreen').style.display = 'flex';
+        }
+        
+        // 重置游戏
+        function resetGame() {
+            score = 0;
+            lives = 3;
+            gameSpeed = 5;
+            obstacleInterval = 1000;
+            coinInterval = 3000;
+            shieldItemInterval = 15000;
+            obstacleCount = 1; // 重置障碍物生成数量
+            shieldActive = false;
+            shieldEndTime = 0;
+            obstacles.length = 0;
+            coins.length = 0;
+            player.x = canvas.width / 2 - 25;
+            
+            // 移除护盾效果
+            canvas.classList.remove('shield-active');
+            
+            document.getElementById('score').textContent = score;
+            updateLivesDisplay();
+            document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('leaderboardScreen').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'none';
+        }
+        
+        // 开始游戏
+        function startGame() {
+            resetGame();
+            gameRunning = true;
+            ensureDragFunctionality(); // 确保拖拽功能可用
+            
+            // 隐藏模式切换按钮
+            document.getElementById('modeToggleBtn').style.display = 'none';
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // 事件监听器
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('playAgainBtn').addEventListener('click', startGame);
+        document.getElementById('leaderboardBtn').addEventListener('click', showLeaderboard);
+        document.getElementById('closeLeaderboardBtn').addEventListener('click', () => {
+            document.getElementById('leaderboardScreen').style.display = 'none';
+        });
+        
+        // 图鉴按钮事件
+        document.getElementById('encyclopediaBtn').addEventListener('click', () => {
+            document.getElementById('encyclopediaScreen').style.display = 'flex';
+        });
+        
+        // 关闭图鉴按钮事件
+        document.getElementById('closeEncyclopediaBtn').addEventListener('click', () => {
+            document.getElementById('encyclopediaScreen').style.display = 'none';
+        });
+        
+        // 模式切换按钮事件
+        document.getElementById('modeToggleBtn').addEventListener('click', () => {
+            // 在三种模式之间循环切换：normal -> casual -> giant -> normal
+            if (gameMode === 'normal') {
+                gameMode = 'casual';
+            } else if (gameMode === 'casual') {
+                gameMode = 'giant';
+            } else {
+                gameMode = 'normal';
+            }
+            
+            const btn = document.getElementById('modeToggleBtn');
+            btn.classList.remove('bg-blue-600', 'hover:bg-blue-700', 'bg-green-600', 'hover:bg-green-700', 'bg-red-600', 'hover:bg-red-700');
+            
+            if (gameMode === 'casual') {
+                btn.textContent = '当前：休闲模式';
+                btn.classList.add('bg-green-600', 'hover:bg-green-700');
+                alert('已切换到休闲模式：游戏速度保持不变，无减速效果');
+            } else if (gameMode === 'giant') {
+                btn.textContent = '当前：大陨石模式';
+                btn.classList.add('bg-red-600', 'hover:bg-red-700');
+                alert('已切换到大陨石模式：只有大陨石和反弹陨石，枪道具概率增加，分数不计入排行榜');
+            } else {
+                btn.textContent = '当前：正常模式';
+                btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                alert('已切换到正常模式：游戏速度逐渐增加，每10分有减速效果');
+            }
+        });
+        
+        // 保存名字按钮事件
+        document.getElementById('saveNameBtn').addEventListener('click', () => {
+            const nameInput = document.getElementById('playerName');
+            const name = nameInput.value.trim();
+            
+            if (name) {
+                playerName = name;
+                localStorage.setItem('playerName', name);
+                localStorage.setItem('hasPlayedBefore', 'true');
+                document.getElementById('nameInputContainer').style.display = 'none';
+                
+                // 更新排行榜
+                updateLeaderboard(score);
+            } else {
+                alert('请输入您的名字！');
+                nameInput.focus();
+            }
+        });
+        
+        // 修改名字按钮事件
+        document.getElementById('changeNameBtn').addEventListener('click', () => {
+            const newName = prompt('请输入新的名字:', playerName);
+            if (newName !== null && newName.trim()) {
+                playerName = newName.trim();
+                localStorage.setItem('playerName', playerName);
+                alert('名字已更新为: ' + playerName);
+            }
+        });
+        
+        // 回车键保存名字
+        document.getElementById('playerName').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('saveNameBtn').click();
+            }
+        });
+        
+        // 拖拽功能 - 垂直判定，优化移动端体验
+        document.addEventListener('mousedown', startDrag);
+        document.addEventListener('touchstart', startDrag, { passive: false });
+        
+        // 确保拖拽功能在游戏开始后可用
+        function ensureDragFunctionality() {
+            // 重新绑定拖拽事件
+            document.addEventListener('mousedown', startDrag);
+            document.addEventListener('touchstart', startDrag, { passive: false });
+        }
+        
+        function startDrag(e) {
+            e.preventDefault();
+            if (!gameRunning) return;
+            
+            player.isDragging = true;
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('touchmove', drag, { passive: false });
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchend', endDrag);
+            document.addEventListener('touchcancel', endDrag); // 处理触摸中断情况
+            document.body.classList.add('dragging');
+        }
+        
+        function drag(e) {
+            if (!player.isDragging) return;
+            e.preventDefault();
+            
+            let clientX;
+            if (e.type === 'touchmove') {
+                // 优化触摸体验，使用第一个触摸点
+                clientX = e.touches[0].clientX;
+            } else {
+                clientX = e.clientX;
+            }
+            
+            const canvasRect = canvas.getBoundingClientRect();
+            // 计算Canvas的缩放比例
+            const scaleX = canvas.width / canvasRect.width;
+            
+            // 根据缩放比例调整玩家位置
+            player.x = (clientX - canvasRect.left) * scaleX - player.width / 2;
+            
+            // 限制玩家在画布内
+            player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+        }
+        
+        function endDrag() {
+            player.isDragging = false;
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('touchmove', drag);
+            document.removeEventListener('mouseup', endDrag);
+            document.removeEventListener('touchend', endDrag);
+            document.removeEventListener('touchcancel', endDrag);
+            document.body.classList.remove('dragging');
+        }
+        
+        // 处理键盘移动的函数
+        function handleKeyboardMovement() {
+            if (isMovingLeft) {
+                player.x -= MOVE_SPEED;
+                // 限制玩家在画布内
+                player.x = Math.max(0, player.x);
+            }
+            if (isMovingRight) {
+                player.x += MOVE_SPEED;
+                // 限制玩家在画布内
+                player.x = Math.min(canvas.width - player.width, player.x);
+            }
+        }
+        
+        // 更新护盾状态和警告效果
+        function updateShieldStatus(timestamp) {
+            if (shieldActive) {
+                const remainingTime = shieldEndTime - timestamp;
+                
+                // 当护盾剩余时间少于2秒时，切换到警告闪烁效果
+                if (remainingTime < 2000) {
+                    canvas.classList.remove('shield-active');
+                    canvas.classList.add('shield-warning');
+                } else {
+                    canvas.classList.remove('shield-warning');
+                    canvas.classList.add('shield-active');
+                }
+                
+                // 当护盾时间结束时，停用护盾
+                if (timestamp > shieldEndTime) {
+                    deactivateShield();
+                }
+            }
+        }
+        
+        // 激活护盾
+        function activateShield() {
+            shieldActive = true;
+            shieldEndTime = performance.now() + shieldDuration;
+            canvas.classList.remove('shield-warning');
+            canvas.classList.add('shield-active');
+            
+            // 显示护盾激活提示
+            const shieldIndicator = document.createElement('div');
+            shieldIndicator.textContent = '护盾激活！';
+            shieldIndicator.style.position = 'absolute';
+            shieldIndicator.style.top = '50%';
+            shieldIndicator.style.left = '50%';
+            shieldIndicator.style.transform = 'translate(-50%, -50%)';
+            shieldIndicator.style.color = '#3b82f6';
+            shieldIndicator.style.fontSize = '24px';
+            shieldIndicator.style.fontWeight = 'bold';
+            shieldIndicator.style.textShadow = '0 0 10px rgba(59, 130, 246, 0.8)';
+            shieldIndicator.style.zIndex = '100';
+            shieldIndicator.style.animation = 'fadeOut 2s forwards';
+            document.querySelector('.game-container').appendChild(shieldIndicator);
+            
+            // 添加收集护盾道具的视觉效果
+            const shieldEffect = document.createElement('div');
+            shieldEffect.style.position = 'absolute';
+            shieldEffect.style.width = '60px';
+            shieldEffect.style.height = '60px';
+            shieldEffect.style.borderRadius = '50%';
+            shieldEffect.style.backgroundColor = 'rgba(59, 130, 246, 0.6)';
+            shieldEffect.style.left = `${player.x + player.width / 2 - 30}px`;
+            shieldEffect.style.top = `${player.y + player.height / 2 - 30}px`;
+            shieldEffect.style.animation = 'coinCollect 0.5s ease-out';
+            document.querySelector('.game-container').appendChild(shieldEffect);
+            
+            setTimeout(() => {
+                shieldIndicator.remove();
+                shieldEffect.remove();
+            }, 2000);
+        }
+        
+        // 停用护盾
+        function deactivateShield() {
+            shieldActive = false;
+            canvas.classList.remove('shield-active');
+            canvas.classList.remove('shield-warning');
+        }
+        
+        // 创建枪道具
+        function createGunItem() {
+            const gunItem = {
+                x: Math.random() * (canvas.width - 40),
+                y: -40,
+                width: 40,
+                height: 40,
+                speed: gameSpeed - 1 + Math.random() * 2
+            };
+            gunItems.push(gunItem);
+        }
+        
+        // 更新枪道具
+        function updateGunItems() {
+            for (let i = gunItems.length - 1; i >= 0; i--) {
+                const gunItem = gunItems[i];
+                gunItem.y += gunItem.speed;
+                
+                // 绘制枪道具
+                ctx.beginPath();
+                ctx.rect(gunItem.x, gunItem.y, gunItem.width, gunItem.height);
+                
+                // 创建枪道具的渐变效果
+                const gradient = ctx.createLinearGradient(
+                    gunItem.x, gunItem.y,
+                    gunItem.x + gunItem.width, gunItem.y + gunItem.height
+                );
+                gradient.addColorStop(0, 'rgba(239, 68, 68, 0.8)');
+                gradient.addColorStop(1, 'rgba(153, 27, 27, 1)');
+                
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                // 绘制枪的符号
+                ctx.beginPath();
+                ctx.moveTo(gunItem.x + gunItem.width * 0.2, gunItem.y + gunItem.height * 0.5);
+                ctx.lineTo(gunItem.x + gunItem.width * 0.8, gunItem.y + gunItem.height * 0.3);
+                ctx.lineTo(gunItem.x + gunItem.width * 0.8, gunItem.y + gunItem.height * 0.7);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.fill();
+                
+                // 移除屏幕外的枪道具
+                if (gunItem.y > canvas.height) {
+                    gunItems.splice(i, 1);
+                }
+            }
+        }
+        
+        // 收集枪道具
+        function collectGunItem() {
+            if (gunActive) {
+                // 如果枪已经激活，升级枪的等级
+                if (gunLevel === 1) {
+                    // 从1级升级到3级
+                    gunLevel = 3;
+                    // 重置持续时间为20秒
+                    gunEndTime = performance.now() + gunDuration;
+                    
+                    // 显示升级提示
+                    const upgradeIndicator = document.createElement('div');
+                    upgradeIndicator.textContent = '枪升级到3级！';
+                    upgradeIndicator.style.position = 'absolute';
+                    upgradeIndicator.style.top = '50%';
+                    upgradeIndicator.style.left = '50%';
+                    upgradeIndicator.style.transform = 'translate(-50%, -50%)';
+                    upgradeIndicator.style.color = '#ef4444';
+                    upgradeIndicator.style.fontSize = '24px';
+                    upgradeIndicator.style.fontWeight = 'bold';
+                    upgradeIndicator.style.textShadow = '0 0 10px rgba(239, 68, 68, 0.8)';
+                    upgradeIndicator.style.zIndex = '100';
+                    upgradeIndicator.style.animation = 'fadeOut 2s forwards';
+                    document.querySelector('.game-container').appendChild(upgradeIndicator);
+                    
+                    setTimeout(() => {
+                        upgradeIndicator.remove();
+                    }, 2000);
+                } else if (gunLevel < 4 && gameMode !== 'giant') {
+                    // 从3级升级到4级（全屏子弹）- 仅在非大陨石模式下
+                    gunLevel = 4;
+                    // 重置持续时间为20秒
+                    gunEndTime = performance.now() + gunDuration;
+                    
+                    // 显示升级提示
+                    const upgradeIndicator = document.createElement('div');
+                    upgradeIndicator.textContent = '终极武器激活！全屏弹幕！';
+                    upgradeIndicator.style.position = 'absolute';
+                    upgradeIndicator.style.top = '50%';
+                    upgradeIndicator.style.left = '50%';
+                    upgradeIndicator.style.transform = 'translate(-50%, -50%)';
+                    upgradeIndicator.style.color = '#ef4444';
+                    upgradeIndicator.style.fontSize = '24px';
+                    upgradeIndicator.style.fontWeight = 'bold';
+                    upgradeIndicator.style.textShadow = '0 0 10px rgba(239, 68, 68, 0.8)';
+                    upgradeIndicator.style.zIndex = '100';
+                    upgradeIndicator.style.animation = 'fadeOut 2s forwards';
+                    document.querySelector('.game-container').appendChild(upgradeIndicator);
+                    
+                    setTimeout(() => {
+                        upgradeIndicator.remove();
+                    }, 2000);
+                }
+                // 最高级时不做任何处理
+            } else {
+                // 首次激活枪
+                activateGun();
+            }
+            
+            // 添加收集枪道具的视觉效果
+            const gunEffect = document.createElement('div');
+            gunEffect.style.position = 'absolute';
+            gunEffect.style.width = '60px';
+            gunEffect.style.height = '60px';
+            gunEffect.style.backgroundColor = 'rgba(239, 68, 68, 0.6)';
+            gunEffect.style.left = `${player.x + player.width / 2 - 30}px`;
+            gunEffect.style.top = `${player.y + player.height / 2 - 30}px`;
+            gunEffect.style.animation = 'coinCollect 0.5s ease-out';
+            document.querySelector('.game-container').appendChild(gunEffect);
+            
+            setTimeout(() => {
+                gunEffect.remove();
+            }, 500);
+        }
+        
+        // 激活枪
+        function activateGun() {
+            gunActive = true;
+            gunEndTime = performance.now() + gunDuration;
+            
+            // 显示枪激活提示
+            const gunIndicator = document.createElement('div');
+            gunIndicator.textContent = '枪已激活！';
+            gunIndicator.style.position = 'absolute';
+            gunIndicator.style.top = '50%';
+            gunIndicator.style.left = '50%';
+            gunIndicator.style.transform = 'translate(-50%, -50%)';
+            gunIndicator.style.color = '#ef4444';
+            gunIndicator.style.fontSize = '24px';
+            gunIndicator.style.fontWeight = 'bold';
+            gunIndicator.style.textShadow = '0 0 10px rgba(239, 68, 68, 0.8)';
+            gunIndicator.style.zIndex = '100';
+            gunIndicator.style.animation = 'fadeOut 2s forwards';
+            document.querySelector('.game-container').appendChild(gunIndicator);
+            
+            setTimeout(() => {
+                gunIndicator.remove();
+            }, 2000);
+        }
+        
+        // 停用枪
+        function deactivateGun() {
+            gunActive = false;
+            gunLevel = 1; // 重置枪等级
+        }
+        
+        // 创建子弹
+        function createBullet() {
+            if (gunLevel === 4) {
+                // 全屏子弹模式：从屏幕底部生成布满一整列的子弹
+                const bulletWidth = 6;
+                const bulletHeight = 15;
+                const bulletSpacing = 30;
+                const bulletCount = Math.floor(canvas.width / bulletSpacing);
+                
+                for (let i = 0; i < bulletCount; i++) {
+                    const bullet = {
+                        x: i * bulletSpacing + bulletSpacing / 2 - bulletWidth / 2,
+                        y: canvas.height,
+                        width: bulletWidth,
+                        height: bulletHeight,
+                        speed: -15 // 向上发射
+                    };
+                    bullets.push(bullet);
+                }
+            } else {
+                // 普通模式：根据等级发射不同数量的子弹
+                const baseX = player.x + player.width / 2;
+                const bulletWidth = 4;
+                const bulletHeight = 10;
+                const bulletSpeed = -20;
+                const spread = 15; // 子弹之间的间距
+                
+                for (let i = 0; i < gunLevel; i++) {
+                    const offset = (i - (gunLevel - 1) / 2) * spread;
+                    const bullet = {
+                        x: baseX + offset - bulletWidth / 2,
+                        y: player.y,
+                        width: bulletWidth,
+                        height: bulletHeight,
+                        speed: bulletSpeed
+                    };
+                    bullets.push(bullet);
+                }
+            }
+        }
+        
+        // 更新子弹
+        function updateBullets() {
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const bullet = bullets[i];
+                bullet.y += bullet.speed;
+                
+                // 绘制子弹
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+                
+                // 移除屏幕外的子弹
+                if (bullet.y < -bullet.height) {
+                    bullets.splice(i, 1);
+                }
+            }
+        }
+        
+        // 绘制血量条
+        function drawHealthBar(obstacle) {
+            const barWidth = obstacle.width * 0.8;
+            const barHeight = 10;
+            const barX = obstacle.x + (obstacle.width - barWidth) / 2;
+            const barY = obstacle.y - 20;
+            
+            // 绘制背景
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(barX, barY, barWidth, barHeight);
+            
+            // 绘制血量
+            const healthWidth = (barWidth / 10) * obstacle.health;
+            ctx.fillStyle = '#ef4444';
+            ctx.fillRect(barX, barY, healthWidth, barHeight);
+        }
+        
+        // 生成反弹陨石
+        function spawnBounceMeteors(x) {
+            for (let i = 0; i < 15; i++) {
+                const angle = (Math.random() - 0.5) * Math.PI; // -90度到90度
+                const meteor = {
+                    x: x + (Math.random() - 0.5) * 200,
+                    y: canvas.height,
+                    width: 30 + Math.random() * 20,
+                    height: 30 + Math.random() * 20,
+                    speedX: Math.sin(angle) * (gameSpeed + Math.random() * 3),
+                    speedY: -Math.cos(angle) * (gameSpeed + Math.random() * 3), // 向上反弹
+                    isBouncing: true,
+                    isGiant: false
+                };
+                obstacles.push(meteor);
+            }
+        }
+        
+        // 减慢游戏速度
+        function slowDownGame() {
+            // 减慢所有东西的移速（减速到当前速度的25%）
+            const slowSpeed = Math.max(3, gameSpeed * 0.25);
+            gameSpeed = slowSpeed;        
+            // 不再恢复，速度将从减慢后的速度继续正常上涨
+            
+            // 显示减速提示
+            const slowIndicator = document.createElement('div');
+            slowIndicator.textContent = '减速效果！';
+            slowIndicator.style.position = 'absolute';
+            slowIndicator.style.top = '50%';
+            slowIndicator.style.left = '50%';
+            slowIndicator.style.transform = 'translate(-50%, -50%)';
+            slowIndicator.style.color = '#10b981';
+            slowIndicator.style.fontSize = '24px';
+            slowIndicator.style.fontWeight = 'bold';
+            slowIndicator.style.textShadow = '0 0 10px rgba(16, 185, 129, 0.8)';
+            slowIndicator.style.zIndex = '100';
+            slowIndicator.style.animation = 'fadeOut 2s forwards';
+            document.querySelector('.game-container').appendChild(slowIndicator);
+            
+            setTimeout(() => {
+                slowIndicator.remove();
+            }, 2000);
+        }
+        
+        // 绘制护盾
+        function drawShield() {
+            const shieldRadius = player.width * 1.5;
+            const shieldX = player.x + player.width / 2;
+            const shieldY = player.y + player.height / 2;
+            
+            ctx.beginPath();
+            ctx.arc(shieldX, shieldY, shieldRadius, Math.PI, 0, false);
+            ctx.lineWidth = 5;
+            
+            // 根据剩余时间决定护盾颜色
+            const remainingTime = shieldEndTime - performance.now();
+            if (remainingTime < 2000) {
+                // 护盾即将消失时，使用红蓝渐变
+                const gradient = ctx.createLinearGradient(
+                    shieldX - shieldRadius, shieldY,
+                    shieldX + shieldRadius, shieldY
+                );
+                gradient.addColorStop(0, 'rgba(239, 68, 68, 0.8)'); // 红色
+                gradient.addColorStop(0.5, 'rgba(59, 130, 246, 0.8)'); // 蓝色
+                gradient.addColorStop(1, 'rgba(239, 68, 68, 0.8)'); // 红色
+                ctx.strokeStyle = gradient;
+            } else {
+                // 正常护盾颜色
+                ctx.strokeStyle = 'rgba(59, 130, 246, 0.8)';
+            }
+            
+            ctx.stroke();
+            
+            // 绘制护盾内部渐变
+            const gradient = ctx.createRadialGradient(
+                shieldX, shieldY, shieldRadius * 0.3,
+                shieldX, shieldY, shieldRadius
+            );
+            gradient.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
+            gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+            
+            ctx.beginPath();
+            ctx.arc(shieldX, shieldY, shieldRadius, Math.PI, 0, false);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+        }
+        
+        // 检查障碍物是否与护盾碰撞
+        function isCollidingWithShield(obstacle) {
+            const shieldRadius = player.width * 1.5;
+            const shieldX = player.x + player.width / 2;
+            const shieldY = player.y + player.height / 2;
+            
+            // 计算障碍物中心点
+            const obstacleCenterX = obstacle.x + obstacle.width / 2;
+            const obstacleCenterY = obstacle.y + obstacle.height / 2;
+            
+            // 计算障碍物中心到护盾中心的距离
+            const dx = obstacleCenterX - shieldX;
+            const dy = obstacleCenterY - shieldY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // 如果距离小于护盾半径加上障碍物半径的一半，则发生碰撞
+            return distance < shieldRadius + (obstacle.width / 2);
+        }
+        
+        // 从护盾反弹
+        function bounceOffShield(obstacle) {
+            // 计算护盾中心
+            const shieldX = player.x + player.width / 2;
+            const shieldY = player.y + player.height / 2;
+            
+            // 计算障碍物中心点
+            const obstacleCenterX = obstacle.x + obstacle.width / 2;
+            const obstacleCenterY = obstacle.y + obstacle.height / 2;
+            
+            // 计算反弹方向
+            const dx = obstacleCenterX - shieldX;
+            const dy = obstacleCenterY - shieldY;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            
+            // 归一化方向向量
+            const nx = dx / length;
+            const ny = dy / length;
+            
+            // 应用反弹力
+            if (obstacle.isBouncing) {
+                // 对于反弹陨石，更新速度向量
+                const dotProduct = obstacle.speedX * nx + obstacle.speedY * ny;
+                obstacle.speedX -= 2 * dotProduct * nx;
+                obstacle.speedY -= 2 * dotProduct * ny;
+                
+                // 增加一些随机性
+                obstacle.speedX += (Math.random() - 0.5) * 2;
+                obstacle.speedY += (Math.random() - 0.5) * 2;
+            } else {
+                // 对于普通陨石，转换为反弹陨石
+                obstacle.isBouncing = true;
+                obstacle.speedX = nx * (gameSpeed + Math.random() * 3);
+                obstacle.speedY = ny * (gameSpeed + Math.random() * 3);
+                delete obstacle.speed;
+            }
+            
+            // 添加反弹效果
+            const bounceEffect = document.createElement('div');
+            bounceEffect.style.position = 'absolute';
+            bounceEffect.style.width = '40px';
+            bounceEffect.style.height = '40px';
+            bounceEffect.style.borderRadius = '50%';
+            bounceEffect.style.backgroundColor = 'rgba(59, 130, 246, 0.6)';
+            bounceEffect.style.left = `${obstacleCenterX - 20}px`;
+            bounceEffect.style.top = `${obstacleCenterY - 20}px`;
+            bounceEffect.style.animation = 'coinCollect 0.5s ease-out';
+            document.querySelector('.game-container').appendChild(bounceEffect);
+            
+            setTimeout(() => {
+                bounceEffect.remove();
+            }, 500);
+        }
+        
+        // 创建生命道具
+        function createLifeItem() {
+            const lifeItem = {
+                x: Math.random() * (canvas.width - 40),
+                y: -40,
+                width: 40,
+                height: 40,
+                speed: gameSpeed - 2 + Math.random() * 2
+            };
+            lifeItems.push(lifeItem);
+        }
+        
+        // 更新生命道具
+        function updateLifeItems() {
+            for (let i = lifeItems.length - 1; i >= 0; i--) {
+                const lifeItem = lifeItems[i];
+                lifeItem.y += lifeItem.speed;
+                
+                // 绘制生命道具
+                ctx.beginPath();
+                ctx.arc(
+                    lifeItem.x + lifeItem.width / 2,
+                    lifeItem.y + lifeItem.height / 2,
+                    lifeItem.width / 2,
+                    0,
+                    Math.PI * 2
+                );
+                
+                // 创建生命道具的渐变效果
+                const gradient = ctx.createRadialGradient(
+                    lifeItem.x + lifeItem.width / 3,
+                    lifeItem.y + lifeItem.height / 3,
+                    0,
+                    lifeItem.x + lifeItem.width / 2,
+                    lifeItem.y + lifeItem.height / 2,
+                    lifeItem.width / 2
+                );
+                gradient.addColorStop(0, 'rgba(239, 68, 68, 0.8)');
+                gradient.addColorStop(1, 'rgba(220, 38, 38, 1)');
+                
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                // 绘制生命道具内部的十字符号
+                ctx.beginPath();
+                ctx.moveTo(lifeItem.x + lifeItem.width / 2 - 8, lifeItem.y + lifeItem.height / 2);
+                ctx.lineTo(lifeItem.x + lifeItem.width / 2 + 8, lifeItem.y + lifeItem.height / 2);
+                ctx.moveTo(lifeItem.x + lifeItem.width / 2, lifeItem.y + lifeItem.height / 2 - 8);
+                ctx.lineTo(lifeItem.x + lifeItem.width / 2, lifeItem.y + lifeItem.height / 2 + 8);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // 移除屏幕外的生命道具
+                if (lifeItem.y > canvas.height) {
+                    lifeItems.splice(i, 1);
+                    // 如果生命道具掉出屏幕，允许在下次满足条件时重新生成
+                    if (lifeItems.length === 0) {
+                        lifeItemSpawned = false;
+                    }
+                }
+            }
+        }
+        
+        // 收集生命道具
+        function collectLifeItem() {
+            if (lives < maxLives) {
+                lives++;
+                updateLivesDisplay();
+                
+                // 显示生命增加提示
+                const lifeIndicator = document.createElement('div');
+                lifeIndicator.textContent = '生命+1！';
+                lifeIndicator.style.position = 'absolute';
+                lifeIndicator.style.top = '50%';
+                lifeIndicator.style.left = '50%';
+                lifeIndicator.style.transform = 'translate(-50%, -50%)';
+                lifeIndicator.style.color = '#ef4444';
+                lifeIndicator.style.fontSize = '24px';
+                lifeIndicator.style.fontWeight = 'bold';
+                lifeIndicator.style.textShadow = '0 0 10px rgba(239, 68, 68, 0.8)';
+                lifeIndicator.style.zIndex = '100';
+                lifeIndicator.style.animation = 'fadeOut 2s forwards';
+                document.querySelector('.game-container').appendChild(lifeIndicator);
+                
+                // 添加收集生命道具的视觉效果
+                const lifeEffect = document.createElement('div');
+                lifeEffect.style.position = 'absolute';
+                lifeEffect.style.width = '60px';
+                lifeEffect.style.height = '60px';
+                lifeEffect.style.borderRadius = '50%';
+                lifeEffect.style.backgroundColor = 'rgba(239, 68, 68, 0.6)';
+                lifeEffect.style.left = `${player.x + player.width / 2 - 30}px`;
+                lifeEffect.style.top = `${player.y + player.height / 2 - 30}px`;
+                lifeEffect.style.animation = 'lifeCollect 0.5s ease-out';
+                document.querySelector('.game-container').appendChild(lifeEffect);
+                
+                setTimeout(() => {
+                    lifeIndicator.remove();
+                    lifeEffect.remove();
+                }, 2000);
+            }
+        }
+        
+        // 初始化
+        updateLivesDisplay();
+        lucide.createIcons();
+    </script>
+
+</body></html>
